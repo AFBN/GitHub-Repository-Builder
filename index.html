@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Repository Publisher</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #238636;
+    --accent-hover: #2ea043;
+    --danger: #da3633;
+    --input-bg: #0d1117;
+    --blue: #388bfd;
+  }
+
+  /* ========== FORCE FULL SCROLLABILITY (WordPress-proof) ========== */
+  html {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    background: var(--bg) !important;
+    position: relative !important;
+  }
+  body {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    position: relative !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html, body, #page, #content, #primary, #main, .site, .site-content, .wrapper, .site-main, .post-inner,
+  .entry-content, .post-content, .wp-block-post-content, .page-content, .content-area, .site-inner,
+  #content-area, .main-content, .entry, .post, article, .wp-site-blocks, .wp-block-group,
+  .entry-content > *, .post-content > *, .wp-block-group__inner-container, .is-layout-constrained,
+  .is-layout-flow, .wp-block-post-content, .entry-content .wp-block-group, #wrapper, #container,
+  .container, .content, .main, .inner, .page-wrapper, .site-container, .content-wrap, .content-inner {
+    background: var(--bg) !important;
+    background-color: var(--bg) !important;
+    color: var(--text) !important;
+    overflow: visible !important;
+    overflow-y: visible !important;
+    overflow-x: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    position: relative !important;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg) !important;
+    color: var(--text);
+    line-height: 1.5;
+    padding: 1.25rem 1.25rem 4rem 1.25rem !important;
+    max-width: 720px;
+    margin: 0 auto !important;
+  }
+
+  #app {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    position: relative !important;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  h2 {
+    font-size: 1.05rem;
+    margin: 0 0 0.85rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+    font-weight: 600;
+  }
+  p, label { color: var(--muted); font-size: 0.9rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    background: #21262d;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1.15rem;
+  }
+
+  input[type="text"],
+  input[type="url"],
+  input[type="password"],
+  textarea,
+  select {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.95rem;
+    margin-top: 0.35rem;
+    transition: border-color 0.15s;
+  }
+  input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+  }
+  textarea {
+    min-height: 110px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    resize: vertical;
+  }
+
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.7rem 1.3rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.85rem;
+    margin-right: 0.5rem;
+    transition: background 0.15s;
+  }
+  button:hover { background: var(--accent-hover); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  button.secondary:hover { background: #21262d; }
+  button.danger { background: var(--danger); }
+  button.full { width: 100%; margin-right: 0; }
+
+  .hidden { display: none !important; }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .user-badge img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+  }
+  .user-badge strong {
+    font-size: 1.05rem;
+  }
+
+  .small { font-size: 0.82rem; color: var(--muted); }
+
+  /* File editor cards – clean stacked layout */
+  .file-editor {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--input-bg);
+    padding: 0.85rem;
+    margin-bottom: 0.9rem;
+    position: relative; /* for remove button positioning */
+  }
+  .file-editor .file-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 0.45rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .file-editor .file-name::before {
+    content: "📄";
+    font-size: 0.95rem;
+  }
+  .file-editor textarea {
+    margin-top: 0;
+    min-height: 100px;
+  }
+
+  .file-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.45rem;
+  }
+  .file-name-row .file-name {
+    margin-bottom: 0;
+  }
+  .file-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .load-file-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
+    margin-top: 0;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  .load-file-btn:hover {
+    background: #21262d;
+  }
+
+  .remove-brand-btn {
+    background: var(--danger);
+    color: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .remove-brand-btn:hover {
+    background: #b52b28;
+  }
+
+  /* Restore branding files list */
+  #removed-branding-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0 0;
+  }
+  #removed-branding-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.55rem 0.75rem;
+    margin-bottom: 0.45rem;
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+  .restore-brand-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .restore-brand-btn:hover {
+    background: #21262d;
+  }
+
+  /* Custom Toggle Switch */
+  .toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 1.1rem;
+  }
+  .toggle-label-text {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+  .switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--danger);
+    transition: .3s;
+    border-radius: 26px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+  }
+  input:checked + .slider {
+    background-color: var(--accent);
+  }
+  input:checked + .slider:before {
+    transform: translateX(24px);
+  }
+
+  /* Help Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.85);
+    z-index: 999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-content {
+    position: relative;
+    background: var(--surface);
+    padding: 2.5rem 2rem 2rem 2rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    max-width: 540px;
+    width: 92%;
+    color: var(--text);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .modal-content h2 { margin-top: 0; border-bottom: none; font-size: 1.2rem; }
+  .modal-content p { color: var(--text); margin-bottom: 0.9rem; line-height: 1.6; }
+  .modal-content ul { margin: 0.5rem 0 1rem 1.25rem; color: var(--text); }
+  .modal-content li { margin-bottom: 0.4rem; line-height: 1.5; }
+  .modal-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--danger);
+    color: #fff;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    font-size: 1.15rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    z-index: 10;
+  }
+  .modal-close-btn:hover { background: #b52b28; }
+
+  /* Toast */
+  #toast-container {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    z-index: 9999999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 340px;
+  }
+  .toast {
+    background: var(--surface);
+    border-left: 5px solid var(--accent);
+    color: var(--text);
+    padding: 0.9rem 1.2rem;
+    border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.55);
+    font-size: 0.9rem;
+    word-wrap: break-word;
+    animation: slideIn 0.3s ease-out forwards;
+  }
+  .toast.error { border-left-color: var(--danger); }
+  .toast.info { border-left-color: var(--blue); }
+  .toast a { color: #58a6ff; font-weight: 600; }
+  
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes fadeOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+
+  /* Success banner after publish */
+  #publish-success {
+    background: #12261e;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 1rem 1.15rem;
+    margin-bottom: 1.15rem;
+    display: none;
+  }
+  #publish-success.visible { display: block; }
+  #publish-success a {
+    font-weight: 600;
+    word-break: break-all;
+  }
+
+  /* Additional files upload area */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    background: var(--input-bg);
+    padding: 1.25rem;
+    text-align: center;
+    margin-bottom: 0.9rem;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .upload-zone:hover {
+    border-color: var(--blue);
+    background: #0f1419;
+  }
+  .upload-zone p {
+    margin-bottom: 0.75rem;
+    color: var(--muted);
+  }
+  .file-list {
+    list-style: none;
+    margin: 0.75rem 0 0 0;
+    padding: 0;
+  }
+  .file-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.55rem 0.75rem;
+    margin-bottom: 0.45rem;
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+  .file-list li span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 70%;
+  }
+  .file-list li button {
+    margin: 0;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.8rem;
+    background: var(--danger);
+  }
+  .file-list li button:hover {
+    background: #b52b28;
+  }
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+  }
+  .btn-row button {
+    margin-top: 0;
+    margin-right: 0;
+  }
+  input[type="file"] {
+    display: none;
+  }
+
+  /* Edit button for custom files */
+  .edit-custom-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.3rem 0.65rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 0;
+  }
+  .edit-custom-btn:hover {
+    background: #21262d;
+  }
+  .file-item-buttons {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  /* Nuclear override – hide WordPress chrome */
+  body .site-header,
+  body header.site-header,
+  body header#masthead,
+  body .site-branding,
+  body .site-title,
+  body .site-description,
+  body .custom-logo-link,
+  body .custom-logo,
+  body .site-logo,
+  body .logo,
+  body .wp-custom-logo,
+  body .main-navigation,
+  body nav.main-navigation,
+  body #site-navigation,
+  body .primary-menu,
+  body .menu-primary,
+  body .nav-primary,
+  body .navbar,
+  body .navigation,
+  body header nav,
+  body .entry-title,
+  body h1.entry-title,
+  body .page-title,
+  body h1.page-title,
+  body .wp-block-post-title,
+  body .page-header,
+  body .page-header h1,
+  body .entry-header,
+  body .entry-header h1,
+  body .site-header-content,
+  body .header-inner,
+  body .branding,
+  body .title-area,
+  body #header,
+  body #branding,
+  body #logo,
+  body #navigation,
+  body #nav,
+  body .menu,
+  body .primary-nav,
+  body .secondary-nav,
+  body .top-bar,
+  body .header-menu,
+  body .site-nav,
+  body .main-menu,
+  body .wp-block-site-title,
+  body .wp-block-site-logo,
+  body .wp-block-navigation,
+  body .has-logo,
+  body .logo-wrap,
+  body .logo-container {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    min-height: 0 !important;
+    width: 0 !important;
+    max-width: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+    clip: rect(0, 0, 0, 0) !important;
+    clip-path: inset(50%) !important;
+  }
+</style>
+</head>
+<body>
+
+<!-- Help Modal -->
+<div id="help-modal-overlay" class="modal-overlay">
+  <div class="modal-content">
+    <button id="close-modal" class="modal-close-btn">&times;</button>
+    <h2>GitHub Repository Publisher</h2>
+    <p>Authenticate with a GitHub Personal Access Token. The token stays in browser memory only (sandbox-safe for WordPress custom HTML blocks). No client secret, no redirect, no external proxy required.</p>
+    <p><strong>How to use</strong></p>
+    <ul>
+      <li>Create a classic PAT at github.com/settings/tokens with the <code>repo</code> scope.</li>
+      <li>Paste the token and click Connect.</li>
+      <li>Enter repository name, description and choose visibility.</li>
+      <li>Edit the branding files (README, index.html, style.css, script.js) directly in the text areas, or use the Load from File buttons. You can remove any branding file you don't want published by clicking the red ✕ button.</li>
+      <li>Restore removed branding files via the "Restore" list that appears below.</li>
+      <li>Optionally upload additional .txt, .docx or .pdf files that will be committed alongside the branding files.</li>
+      <li>Add custom text files using the <em>Add File</em> modal – pick a language type and provide content. You can later edit any custom file by clicking the Edit button next to it.</li>
+      <li>Click Publish to create the repository and push all files in one step. Repository name, description, current year and your connected GitHub username are applied automatically from the connected account and the form fields.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Custom File Modal -->
+<div id="file-modal-overlay" class="modal-overlay hidden">
+  <div class="modal-content">
+    <button id="close-file-modal" class="modal-close-btn">&times;</button>
+    <h2 id="file-modal-title">Add Custom File</h2>
+    <label>File Name (with extension, e.g., app.py)
+      <input type="text" id="custom-file-name" placeholder="my-script.js" spellcheck="false">
+    </label>
+    <label style="display:block; margin-top:0.85rem">Language Type
+      <select id="custom-file-language">
+        <option value="">Select a language...</option>
+        <option value="js">JavaScript (.js)</option>
+        <option value="py">Python (.py)</option>
+        <option value="html">HTML (.html)</option>
+        <option value="css">CSS (.css)</option>
+        <option value="md">Markdown (.md)</option>
+        <option value="json">JSON (.json)</option>
+        <option value="txt">Plain Text (.txt)</option>
+        <option value="other">Other</option>
+      </select>
+    </label>
+    <label style="display:block; margin-top:0.85rem">Content
+      <textarea id="custom-file-content" rows="6" placeholder="Enter file content..."></textarea>
+    </label>
+    <button id="btn-add-custom-file" class="full" style="margin-top:0.9rem">Add File</button>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<h1>GitHub Repository Publisher</h1>
+
+<div id="app">
+
+  <!-- LOGIN -->
+  <div id="login-section" class="card">
+    <h2>1. Connect your GitHub account</h2>
+    <p>Paste a classic Personal Access Token that has the <code>repo</code> scope. The token is kept only in memory for this page session and never sent anywhere except the official GitHub API.</p>
+    <label style="display:block;margin-top:0.9rem">Personal Access Token
+      <input type="password" id="pat-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+    </label>
+    <p class="small" style="margin-top:0.55rem">
+      Create one → 
+      <a href="https://github.com/settings/tokens/new?scopes=repo&description=GitHub%20Repository%20Publisher" target="_blank" rel="noopener noreferrer">github.com/settings/tokens</a>
+      (classic, scope: <code>repo</code>)
+    </p>
+    <button id="btn-login" class="full">Connect GitHub Account</button>
+  </div>
+
+  <!-- MAIN (authenticated) -->
+  <div id="main-section" class="hidden">
+
+    <div class="card">
+      <div class="user-badge" id="user-info"></div>
+      <button id="btn-logout" class="secondary" style="margin-top:1rem">Disconnect</button>
+    </div>
+
+    <div id="publish-success">
+      <strong style="color:var(--accent)">Repository published</strong><br>
+      <a id="success-repo-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+    </div>
+
+    <div class="card">
+      <h2>2. Create a new branded repository</h2>
+      <label>Repository name (required)
+        <input type="text" id="repo-name" placeholder="my-awesome-library" autocomplete="off" spellcheck="false">
+      </label>
+      <label style="display:block;margin-top:0.85rem">Description
+        <input type="text" id="repo-description" placeholder="A short description of the library">
+      </label>
+      
+      <div class="toggle-container">
+        <label class="switch">
+          <input type="checkbox" id="repo-private" checked>
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label-text" id="toggle-status-text">Private Repository</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Branding files</h2>
+      <p class="small" style="margin-bottom:1rem">
+        These four files are committed to every new repository.<br>
+        Repository name, description, current year and your connected GitHub username are applied automatically from the form and the connected account when you publish.<br>
+        Use the Load from File buttons to replace the content of any text area with a local .txt file. Remove files you don't want with the red ✕ button.
+      </p>
+
+      <div class="file-editor" id="editor-readme">
+        <div class="file-name-row">
+          <div class="file-name">README.md</div>
+          <div class="file-actions">
+            <button type="button" class="load-file-btn" data-target="brand-readme">Load from File</button>
+            <button type="button" class="remove-brand-btn" data-file="README.md" title="Remove README.md">&times;</button>
+          </div>
+        </div>
+        <textarea id="brand-readme"># GitHub-Repository-Builder
+
+A single‑page, self‑contained HTML application that lets you create fully‑configured GitHub repositories right from your browser.   Authenticate with a Personal Access Token, edit branding files, add custom files, upload binary assets, and publish everything in one click – no server, no build tools, no external dependencies.
+
+## Getting Started
+
+Open `index.html` in your browser. No build tools required.
+
+## License
+
+MIT © 2026 AFBN</textarea>
+      </div>
+
+      <div class="file-editor" id="editor-index">
+        <div class="file-name-row">
+          <div class="file-name">index.html</div>
+          <div class="file-actions">
+            <button type="button" class="load-file-btn" data-target="brand-html">Load from File</button>
+            <button type="button" class="remove-brand-btn" data-file="index.html" title="Remove index.html">&times;</button>
+          </div>
+        </div>
+        <textarea id="brand-html"><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub-Repository-Builder</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>GitHub-Repository-Builder</h1>
+    <p>A single‑page, self‑contained HTML application that lets you create fully‑configured GitHub repositories right from your browser.   Authenticate with a Personal Access Token, edit branding files, add custom files, upload binary assets, and publish everything in one click – no server, no build tools, no external dependencies.</p>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html></textarea>
+      </div>
+
+      <div class="file-editor" id="editor-style">
+        <div class="file-name-row">
+          <div class="file-name">style.css</div>
+          <div class="file-actions">
+            <button type="button" class="load-file-btn" data-target="brand-css">Load from File</button>
+            <button type="button" class="remove-brand-btn" data-file="style.css" title="Remove style.css">&times;</button>
+          </div>
+        </div>
+        <textarea id="brand-css">:root {
+  --bg: #0d1117;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #238636;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+main {
+  max-width: 560px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+p {
+  color: var(--muted);
+  line-height: 1.6;
+}</textarea>
+      </div>
+
+      <div class="file-editor" id="editor-script">
+        <div class="file-name-row">
+          <div class="file-name">script.js</div>
+          <div class="file-actions">
+            <button type="button" class="load-file-btn" data-target="brand-js">Load from File</button>
+            <button type="button" class="remove-brand-btn" data-file="script.js" title="Remove script.js">&times;</button>
+          </div>
+        </div>
+        <textarea id="brand-js">// GitHub-Repository-Builder
+// Generated 2026 by AFBN
+
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('GitHub-Repository-Builder loaded');
+});</textarea>
+      </div>
+
+      <div id="removed-branding-section" class="hidden" style="margin-top:0.5rem">
+        <p class="small" style="margin-bottom:0.5rem">Removed branding files (click to restore):</p>
+        <ul id="removed-branding-list"></ul>
+      </div>
+
+      <h2 style="margin-top:1.5rem">4. Additional files (.txt, .docx, .pdf)</h2>
+      <p class="small" style="margin-bottom:0.85rem">
+        Upload extra files that will be committed to the repository together with the branding files. Supported types: .txt, .docx, .pdf. File names must not conflict with README.md, index.html, style.css or script.js.
+      </p>
+
+      <div class="upload-zone" id="upload-zone">
+        <p>Drag and drop files here or use the button below</p>
+        <div class="btn-row" style="justify-content:center">
+          <button type="button" id="btn-select-files" class="secondary">Select Files</button>
+          <button type="button" id="btn-clear-files" class="danger">Clear All</button>
+        </div>
+        <input type="file" id="additional-files-input" multiple accept=".txt,.docx,.pdf,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+        <ul class="file-list" id="additional-files-list"></ul>
+      </div>
+
+      <h2 style="margin-top:1.5rem">5. Custom Text Files (Optional)</h2>
+      <p class="small" style="margin-bottom:0.85rem">
+        Add custom text files with any extension. Use the modal to set file name and language type. You can edit or remove any existing custom file.
+      </p>
+      <button type="button" id="btn-show-file-modal" class="secondary">Add File</button>
+      <ul class="file-list" id="custom-files-list"></ul>
+      <div style="margin-top:0.75rem"></div>
+
+      <button id="btn-publish" class="full">Publish to GitHub</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Safe memory storage (sandbox-compatible) ── */
+  const memoryStore = {};
+  const SafeStorage = {
+    getItem(key) {
+      try {
+        if (typeof sessionStorage !== 'undefined') return sessionStorage.getItem(key);
+      } catch (e) {}
+      return memoryStore[key] || null;
+    },
+    setItem(key, value) {
+      try {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem(key, value);
+          return;
+        }
+      } catch (e) {}
+      memoryStore[key] = String(value);
+    },
+    removeItem(key) {
+      try {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.removeItem(key);
+          return;
+        }
+      } catch (e) {}
+      delete memoryStore[key];
+    }
+  };
+
+  /* ── Toast system ── */
+  function showToast(message, type = 'success', html = false) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    if (html) {
+      toast.innerHTML = message;
+    } else {
+      toast.textContent = message;
+    }
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+      setTimeout(() => {
+        if (container.contains(toast)) container.removeChild(toast);
+      }, 300);
+    }, 5000);
+  }
+
+  /* ── Help Modal ── */
+  document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('help-modal-overlay');
+    document.getElementById('close-modal').addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+  });
+
+  /* ── Toggle text ── */
+  const toggleInput = document.getElementById('repo-private');
+  const toggleText = document.getElementById('toggle-status-text');
+  toggleInput.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      toggleText.textContent = 'Private Repository';
+      toggleText.style.color = 'var(--text)';
+    } else {
+      toggleText.textContent = 'Public Repository (Visible to everyone)';
+      toggleText.style.color = 'var(--danger)';
+    }
+  });
+
+  /* ── State ── */
+  let githubToken = SafeStorage.getItem('gh_token');
+  let githubUser = null;
+  let additionalFiles = [];
+  let customFiles = [];
+  let editingCustomFileIndex = null;
+  const removedBrandingFiles = new Set();   // stores file names like 'README.md'
+
+  /* ── Logout ── */
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    SafeStorage.removeItem('gh_token');
+    githubToken = null;
+    githubUser = null;
+    document.getElementById('publish-success').classList.remove('visible');
+    updateUI();
+    showToast('Disconnected from GitHub.', 'info');
+  });
+
+  /* ── Connect with PAT ── */
+  document.getElementById('btn-login').addEventListener('click', async () => {
+    const pat = document.getElementById('pat-input').value.trim();
+    if (!pat) {
+      showToast('Please paste a Personal Access Token.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true;
+    btn.textContent = 'Verifying…';
+    showToast('Verifying token…', 'info');
+
+    try {
+      const response = await fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': `Bearer ${pat}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || 'Invalid token or missing repo scope');
+      }
+
+      githubUser = await response.json();
+      githubToken = pat;
+      SafeStorage.setItem('gh_token', pat);
+      document.getElementById('pat-input').value = '';
+      showToast('Successfully connected as ' + githubUser.login, 'success');
+      await updateUI();
+    } catch (error) {
+      showToast('Authentication failed: ' + error.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Connect GitHub Account';
+    }
+  });
+
+  /* ── Fetch user ── */
+  async function fetchUser() {
+    if (!githubToken) return;
+    try {
+      const response = await fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      if (response.ok) {
+        githubUser = await response.json();
+      } else {
+        SafeStorage.removeItem('gh_token');
+        githubToken = null;
+        githubUser = null;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  /* ── Update UI ── */
+  async function updateUI() {
+    if (githubToken) {
+      if (!githubUser) await fetchUser();
+      if (githubUser) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('main-section').classList.remove('hidden');
+        document.getElementById('user-info').innerHTML = `
+          <img src="${githubUser.avatar_url}" alt="Avatar" width="42" height="42">
+          <div>
+            <strong>${githubUser.login}</strong>
+            <div class="small">${githubUser.name || ''}</div>
+          </div>
+        `;
+      } else {
+        document.getElementById('login-section').classList.remove('hidden');
+        document.getElementById('main-section').classList.add('hidden');
+      }
+    } else {
+      document.getElementById('login-section').classList.remove('hidden');
+      document.getElementById('main-section').classList.add('hidden');
+    }
+  }
+
+  /* ── Load from File buttons for branding textareas ── */
+  document.querySelectorAll('.load-file-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.txt,text/plain';
+      input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          document.getElementById(targetId).value = reader.result;
+          showToast('Loaded content into ' + targetId.replace('brand-', '') + ' from ' + file.name, 'success');
+        };
+        reader.onerror = () => {
+          showToast('Failed to read file ' + file.name, 'error');
+        };
+        reader.readAsText(file);
+      });
+      input.click();
+    });
+  });
+
+  /* ── Remove branding file buttons ── */
+  function renderRemovedBrandingList() {
+    const section = document.getElementById('removed-branding-section');
+    const list = document.getElementById('removed-branding-list');
+    list.innerHTML = '';
+
+    if (removedBrandingFiles.size === 0) {
+      section.classList.add('hidden');
+      return;
+    }
+
+    section.classList.remove('hidden');
+    removedBrandingFiles.forEach(fileName => {
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.textContent = fileName;
+      const restoreBtn = document.createElement('button');
+      restoreBtn.type = 'button';
+      restoreBtn.className = 'restore-brand-btn';
+      restoreBtn.textContent = 'Restore';
+      restoreBtn.addEventListener('click', () => {
+        removedBrandingFiles.delete(fileName);
+        // Show editor again
+        const editorMap = {
+          'README.md': 'editor-readme',
+          'index.html': 'editor-index',
+          'style.css': 'editor-style',
+          'script.js': 'editor-script'
+        };
+        const editorId = editorMap[fileName];
+        if (editorId) {
+          document.getElementById(editorId).classList.remove('hidden');
+        }
+        renderRemovedBrandingList();
+        showToast(`Restored ${fileName}`, 'info');
+      });
+      li.appendChild(span);
+      li.appendChild(restoreBtn);
+      list.appendChild(li);
+    });
+  }
+
+  document.querySelectorAll('.remove-brand-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const fileName = btn.getAttribute('data-file');
+      if (!fileName) return;
+
+      // Hide the editor
+      const editorMap = {
+        'README.md': 'editor-readme',
+        'index.html': 'editor-index',
+        'style.css': 'editor-style',
+        'script.js': 'editor-script'
+      };
+      const editorId = editorMap[fileName];
+      if (editorId) {
+        document.getElementById(editorId).classList.add('hidden');
+      }
+
+      // Add to removed set
+      removedBrandingFiles.add(fileName);
+      renderRemovedBrandingList();
+      showToast(`Removed ${fileName} from publish list.`, 'info');
+    });
+  });
+
+  /* ── Additional files management ── */
+  const additionalInput = document.getElementById('additional-files-input');
+  const additionalList = document.getElementById('additional-files-list');
+  const reservedNames = ['readme.md', 'index.html', 'style.css', 'script.js'];
+
+  function renderAdditionalFiles() {
+    additionalList.innerHTML = '';
+    additionalFiles.forEach((file, index) => {
+      const li = document.createElement('li');
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.textContent = 'Remove';
+      removeBtn.addEventListener('click', () => {
+        additionalFiles.splice(index, 1);
+        renderAdditionalFiles();
+      });
+      li.appendChild(nameSpan);
+      li.appendChild(removeBtn);
+      additionalList.appendChild(li);
+    });
+  }
+
+  function addFiles(fileList) {
+    const allowed = ['.txt', '.docx', '.pdf'];
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      const lower = file.name.toLowerCase();
+      const ext = lower.slice(lower.lastIndexOf('.'));
+      if (!allowed.includes(ext)) {
+        showToast('Skipped unsupported file: ' + file.name + '. Only .txt, .docx and .pdf are allowed.', 'error');
+        continue;
+      }
+      if (reservedNames.includes(lower)) {
+        showToast('Skipped reserved name: ' + file.name + '. Use a different file name.', 'error');
+        continue;
+      }
+      const already = additionalFiles.some(f => f.name.toLowerCase() === lower);
+      if (already) {
+        showToast('File already selected: ' + file.name, 'info');
+        continue;
+      }
+      additionalFiles.push(file);
+    }
+    renderAdditionalFiles();
+  }
+
+  document.getElementById('btn-select-files').addEventListener('click', () => {
+    additionalInput.click();
+  });
+
+  additionalInput.addEventListener('change', () => {
+    if (additionalInput.files && additionalInput.files.length) {
+      addFiles(additionalInput.files);
+      additionalInput.value = '';
+    }
+  });
+
+  document.getElementById('btn-clear-files').addEventListener('click', () => {
+    additionalFiles = [];
+    renderAdditionalFiles();
+    showToast('Cleared all additional files.', 'info');
+  });
+
+  const uploadZone = document.getElementById('upload-zone');
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadZone.style.borderColor = 'var(--blue)';
+  });
+  uploadZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadZone.style.borderColor = 'var(--border)';
+  });
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadZone.style.borderColor = 'var(--border)';
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+      addFiles(e.dataTransfer.files);
+    }
+  });
+
+  /* ── Custom files modal ── */
+  const fileModal = document.getElementById('file-modal-overlay');
+  const btnShowFileModal = document.getElementById('btn-show-file-modal');
+  const btnCloseFileModal = document.getElementById('close-file-modal');
+  const customFileName = document.getElementById('custom-file-name');
+  const customFileLang = document.getElementById('custom-file-language');
+  const customFileContent = document.getElementById('custom-file-content');
+  const btnAddCustomFile = document.getElementById('btn-add-custom-file');
+  const customFilesList = document.getElementById('custom-files-list');
+  const fileModalTitle = document.getElementById('file-modal-title');
+
+  function openFileModal() {
+    fileModal.classList.remove('hidden');
+    setTimeout(() => {
+      customFileName.focus();
+    }, 50);
+  }
+
+  function closeFileModal() {
+    fileModal.classList.add('hidden');
+    editingCustomFileIndex = null;
+    btnAddCustomFile.textContent = 'Add File';
+    fileModalTitle.textContent = 'Add Custom File';
+    customFileName.value = '';
+    customFileLang.value = '';
+    customFileContent.value = '';
+  }
+
+  btnShowFileModal.addEventListener('click', () => {
+    editingCustomFileIndex = null;
+    btnAddCustomFile.textContent = 'Add File';
+    fileModalTitle.textContent = 'Add Custom File';
+    customFileName.value = '';
+    customFileLang.value = '';
+    customFileContent.value = '';
+    openFileModal();
+  });
+
+  btnCloseFileModal.addEventListener('click', closeFileModal);
+
+  fileModal.addEventListener('click', (e) => {
+    if (e.target === fileModal) {
+      closeFileModal();
+    }
+  });
+
+  customFileLang.addEventListener('change', () => {
+    const lang = customFileLang.value;
+    if (!lang || lang === 'other') return;
+    const extMap = {
+      js: 'js',
+      py: 'py',
+      html: 'html',
+      css: 'css',
+      md: 'md',
+      json: 'json',
+      txt: 'txt'
+    };
+    const ext = '.' + extMap[lang];
+    let name = customFileName.value.trim();
+    if (name === '') {
+      customFileName.value = 'untitled' + ext;
+    } else if (!name.includes('.')) {
+      customFileName.value = name + ext;
+    }
+  });
+
+  function renderCustomFiles() {
+    customFilesList.innerHTML = '';
+    customFiles.forEach((file, index) => {
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.textContent = file.name + (file.language ? ` (${file.language})` : '');
+
+      const btnGroup = document.createElement('div');
+      btnGroup.className = 'file-item-buttons';
+
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'edit-custom-btn';
+      editBtn.textContent = 'Edit';
+      editBtn.addEventListener('click', () => {
+        editingCustomFileIndex = index;
+        customFileName.value = file.name;
+        if (file.language && ['js','py','html','css','md','json','txt','other'].includes(file.language)) {
+          customFileLang.value = file.language;
+        } else {
+          customFileLang.value = '';
+        }
+        customFileContent.value = file.content;
+        btnAddCustomFile.textContent = 'Update File';
+        fileModalTitle.textContent = 'Edit Custom File';
+        openFileModal();
+      });
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.textContent = 'Remove';
+      removeBtn.addEventListener('click', () => {
+        customFiles.splice(index, 1);
+        renderCustomFiles();
+      });
+
+      btnGroup.appendChild(editBtn);
+      btnGroup.appendChild(removeBtn);
+      li.appendChild(span);
+      li.appendChild(btnGroup);
+      customFilesList.appendChild(li);
+    });
+  }
+
+  btnAddCustomFile.addEventListener('click', () => {
+    const name = customFileName.value.trim();
+    const lang = customFileLang.value;
+    const content = customFileContent.value;
+
+    if (!name) {
+      showToast('Please enter a file name.', 'error');
+      return;
+    }
+    if (!name.includes('.')) {
+      showToast('File name must include an extension (e.g., script.js).', 'error');
+      return;
+    }
+    const lowerName = name.toLowerCase();
+    if (reservedNames.includes(lowerName)) {
+      showToast('File name conflicts with a branding file: ' + name, 'error');
+      return;
+    }
+    if (editingCustomFileIndex !== null) {
+      const conflict = customFiles.some((f, idx) => idx !== editingCustomFileIndex && f.name.toLowerCase() === lowerName);
+      if (conflict) {
+        showToast('Another custom file with this name already exists.', 'error');
+        return;
+      }
+    } else {
+      if (customFiles.some(f => f.name.toLowerCase() === lowerName)) {
+        showToast('A custom file with this name already exists.', 'error');
+        return;
+      }
+    }
+    if (additionalFiles.some(f => f.name.toLowerCase() === lowerName)) {
+      showToast('File name conflicts with an uploaded additional file.', 'error');
+      return;
+    }
+
+    if (editingCustomFileIndex !== null) {
+      customFiles[editingCustomFileIndex] = {
+        name: name,
+        language: lang || '',
+        content: content
+      };
+    } else {
+      customFiles.push({
+        name: name,
+        language: lang || '',
+        content: content
+      });
+    }
+    renderCustomFiles();
+    closeFileModal();
+    showToast(editingCustomFileIndex !== null ? 'Updated custom file: ' + name : 'Added custom file: ' + name, 'success');
+  });
+
+  /* ── Base64 helper for binary and text files ── */
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = () => reject(new Error('Failed to read ' + file.name));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* ── Publish ── */
+  document.getElementById('btn-publish').addEventListener('click', async () => {
+    const repoName = document.getElementById('repo-name').value.trim();
+    const repoDesc = document.getElementById('repo-description').value.trim();
+    const isPrivate = document.getElementById('repo-private').checked;
+
+    if (!repoName) {
+      showToast('Repository name is required.', 'error');
+      return;
+    }
+    if (!/^[a-zA-Z0-9._-]+$/.test(repoName)) {
+      showToast('Repository name may only contain letters, numbers, hyphens, underscores and periods.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-publish');
+    btn.disabled = true;
+    btn.textContent = 'Publishing…';
+    document.getElementById('publish-success').classList.remove('visible');
+
+    try {
+      showToast('Creating repository…', 'info');
+
+      const createRes = await fetch('https://api.github.com/user/repos', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        body: JSON.stringify({
+          name: repoName,
+          description: repoDesc,
+          private: isPrivate,
+          auto_init: false
+        })
+      });
+
+      if (!createRes.ok) {
+        const err = await createRes.json();
+        throw new Error(err.message || 'Failed to create repository');
+      }
+
+      showToast('Uploading files…', 'info');
+
+      // All possible branding files
+      const allBrandingFiles = [
+        { path: 'README.md', id: 'brand-readme' },
+        { path: 'index.html', id: 'brand-html' },
+        { path: 'style.css', id: 'brand-css' },
+        { path: 'script.js', id: 'brand-js' }
+      ];
+
+      // Filter out removed ones
+      const filesToUpload = allBrandingFiles.filter(f => !removedBrandingFiles.has(f.path));
+
+      const year = new Date().getFullYear();
+
+      for (const file of filesToUpload) {
+        let content = document.getElementById(file.id).value;
+        content = content
+          .replace(/\{\{REPO_NAME\}\}/g, repoName)
+          .replace(/\{\{DESCRIPTION\}\}/g, repoDesc)
+          .replace(/\{\{YEAR\}\}/g, year)
+          .replace(/\{\{GITHUB_USER\}\}/g, githubUser.login);
+
+        const bytes = new TextEncoder().encode(content);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        const base64 = btoa(binary);
+
+        const putRes = await fetch(
+          `https://api.github.com/repos/${githubUser.login}/${repoName}/contents/${file.path}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${githubToken}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify({
+              message: `Add ${file.path}`,
+              content: base64
+            })
+          }
+        );
+
+        if (!putRes.ok) {
+          const err = await putRes.json();
+          throw new Error(`Failed to upload ${file.path}: ${err.message || putRes.status}`);
+        }
+      }
+
+      // Custom text files
+      for (const file of customFiles) {
+        const bytes = new TextEncoder().encode(file.content);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        const base64 = btoa(binary);
+
+        const putRes = await fetch(
+          `https://api.github.com/repos/${githubUser.login}/${repoName}/contents/${file.name}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${githubToken}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify({
+              message: `Add ${file.name}`,
+              content: base64
+            })
+          }
+        );
+
+        if (!putRes.ok) {
+          const err = await putRes.json();
+          throw new Error(`Failed to upload ${file.name}: ${err.message || putRes.status}`);
+        }
+      }
+
+      // Additional binary files
+      for (const file of additionalFiles) {
+        const base64 = await fileToBase64(file);
+        const putRes = await fetch(
+          `https://api.github.com/repos/${githubUser.login}/${repoName}/contents/${file.name}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${githubToken}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify({
+              message: `Add ${file.name}`,
+              content: base64
+            })
+          }
+        );
+
+        if (!putRes.ok) {
+          const err = await putRes.json();
+          throw new Error(`Failed to upload ${file.name}: ${err.message || putRes.status}`);
+        }
+      }
+
+      const repoUrl = `https://github.com/${githubUser.login}/${repoName}`;
+      document.getElementById('success-repo-link').href = repoUrl;
+      document.getElementById('success-repo-link').textContent = repoUrl;
+      document.getElementById('publish-success').classList.add('visible');
+
+      showToast(`Published successfully → <a href="${repoUrl}" target="_blank" rel="noopener noreferrer">${repoUrl}</a>`, 'success', true);
+
+      document.getElementById('repo-name').value = '';
+      document.getElementById('repo-description').value = '';
+      additionalFiles = [];
+      customFiles = [];
+      removedBrandingFiles.clear();
+      // Show all branding editors again
+      document.querySelectorAll('.file-editor').forEach(el => el.classList.remove('hidden'));
+      renderAdditionalFiles();
+      renderCustomFiles();
+      renderRemovedBrandingList();
+
+    } catch (error) {
+      showToast('Error: ' + error.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Publish to GitHub';
+    }
+  });
+
+  /* ── Init ── */
+  (async function init() {
+    await updateUI();
+    renderRemovedBrandingList(); // ensure section hidden initially
+  })();
+</script>
+
+</body>
+</html>
